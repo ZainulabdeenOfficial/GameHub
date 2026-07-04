@@ -1,0 +1,68 @@
+export const API_URL = '/api';
+export const API_BASE_URL = 'http://gamehub12.runasp.net';
+
+export const API_ENDPOINTS = {
+  auth: {
+    register: '/auth/register',
+    login: '/auth/login',
+    refreshToken: '/auth/refresh-token',
+    logout: '/auth/logout',
+    forgotPassword: '/auth/forgot-password',
+    verifyResetCode: '/auth/verify-reset-code',
+    resetPassword: '/auth/reset-password',
+    verifyEmail: '/auth/verify-email',
+    socialLogin: '/auth/social-login',
+    enable2fa: '/auth/enable-2fa',
+    disable2fa: '/auth/disable-2fa',
+    changePassword: '/auth/change-password',
+  },
+  games: {
+    base: '/games',
+    featured: '/games/featured',
+    trending: '/games/trending',
+    latest: '/games/latest',
+    search: '/games/search',
+    stats: '/games/stats',
+    duplicate: (id: string) => `/games/${id}/duplicate`,
+    status: (id: string) => `/games/${id}/status`,
+    bulkDelete: '/games/bulk-delete',
+  },
+  reviews: {
+    base: '/reviews',
+    byGame: (gameId: string) => `/reviews/game/${gameId}`,
+  },
+  categories: '/categories',
+  publishers: '/publishers',
+  developers: '/developers',
+  orders: '/orders',
+  upload: {
+    image: '/upload/image',
+    imageUrl: '/upload/image-url',
+    file: '/upload/file',
+  },
+  screenshots: {
+    byGame: (gameId: string) => `/games/${gameId}/screenshots`,
+    item: (gameId: string, screenshotId: string) => `/games/${gameId}/screenshots/${screenshotId}`,
+    reorder: (gameId: string) => `/games/${gameId}/screenshots/reorder`,
+  },
+  admin: {
+    dashboard: '/admin/dashboard',
+    users: '/admin/users',
+    blockUser: (id: string) => `/admin/users/${id}/block`,
+  },
+  banners: {
+    base: '/banners',
+    active: '/banners/active',
+  },
+  contactMessages: '/contactmessages',
+  heroBanners: {
+    base: '/hero-banners',
+    published: '/hero-banners/published',
+    featured: '/hero-banners/featured',
+    duplicate: (id: string) => `/hero-banners/${id}/duplicate`,
+    reorder: '/hero-banners/reorder',
+    togglePublish: (id: string) => `/hero-banners/${id}/toggle-publish`,
+    toggleFeatured: (id: string) => `/hero-banners/${id}/toggle-featured`,
+    archive: (id: string) => `/hero-banners/${id}/archive`,
+  },
+};
