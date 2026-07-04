@@ -4,6 +4,7 @@
   "installCommand": "npm install --legacy-peer-deps",
   "framework": "angular",
   "rewrites": [
+    { "source": "/api/(.*)", "destination": "http://gamehub12.runasp.net/api/$1" },
     { "source": "/(.*)", "destination": "/index.html" }
   ]
 }

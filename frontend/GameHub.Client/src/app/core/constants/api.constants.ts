@@ -1,4 +1,4 @@
-export const API_URL = 'http://gamehub12.runasp.net/api';
+export const API_URL = '/api';
 
 export const API_ENDPOINTS = {
   auth: {
