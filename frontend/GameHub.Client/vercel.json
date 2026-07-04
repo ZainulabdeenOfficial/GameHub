@@ -2,5 +2,8 @@
   "buildCommand": "npm run build",
   "outputDirectory": "dist/GameHub.Client",
   "installCommand": "npm install --legacy-peer-deps",
-  "framework": "angular"
+  "framework": "angular",
+  "rewrites": [
+    { "source": "/(.*)", "destination": "/index.html" }
+  ]
 }
