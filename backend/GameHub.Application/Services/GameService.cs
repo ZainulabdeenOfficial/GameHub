@@ -30,7 +30,10 @@ public class GameService : IGameService
     {
         var cacheKey = $"game_{id}";
         var cached = await _cacheService.GetAsync<GameDto>(cacheKey);
-        if (cached != null) return ApiResponse<GameDto>.Ok(cached);
+        if (cached?.CategoryName != null)
+            return ApiResponse<GameDto>.Ok(cached);
+        if (cached != null)
+            await _cacheService.RemoveAsync(cacheKey);
 
         var game = await _gameRepository.GetGameWithDetailsAsync(id);
         if (game == null)

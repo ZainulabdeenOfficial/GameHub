@@ -37,5 +37,5 @@ public class GameRepository : GenericRepository<Game>, IGameRepository
     }
 
     public async Task<Game?> GetGameWithDetailsAsync(string gameId)
-        => await _dbSet.Include(g => g.Images).Include(g => g.Screenshots).Include(g => g.GameFiles).Include(g => g.Category).Include(g => g.Publisher).Include(g => g.Developer).FirstOrDefaultAsync(g => g.Id == gameId && !g.IsDeleted);
+        => await _dbSet.AsNoTracking().Include(g => g.Images).Include(g => g.Screenshots).Include(g => g.GameFiles).Include(g => g.Category).Include(g => g.Publisher).Include(g => g.Developer).FirstOrDefaultAsync(g => g.Id == gameId && !g.IsDeleted);
 }

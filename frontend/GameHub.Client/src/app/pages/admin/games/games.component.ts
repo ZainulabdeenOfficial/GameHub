@@ -150,23 +150,14 @@ import { GameListDto, Category, Publisher, Developer, Screenshot } from '../../.
                   <span class="text-white text-xs bg-gray-900/80 px-2 py-0.5 rounded">{{i + 1}}</span>
                 </div>
               </div>
-              <label class="aspect-video bg-gray-800/50 border-2 border-dashed border-gray-700 rounded-lg flex flex-col items-center justify-center cursor-pointer hover:bg-gray-800 hover:border-indigo-500 transition-all">
-                <svg *ngIf="!uploadingScreenshot()" class="w-8 h-8 text-gray-500 mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"/></svg>
-                <svg *ngIf="uploadingScreenshot()" class="w-8 h-8 text-indigo-400 mb-1 animate-spin" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
-                <span class="text-xs text-gray-500">{{uploadingScreenshot() ? 'Uploading...' : 'Add Screenshot'}}</span>
-                <input type="file" accept="image/*" (change)="onScreenshotUpload($event)" class="hidden">
-              </label>
             </div>
-            <div class="mt-4">
-              <label class="text-gray-400 text-sm block mb-2">Or Add Screenshot by URL</label>
-              <div class="flex gap-2">
-                <input type="url" [(ngModel)]="newScreenshotUrl" placeholder="https://example.com/screenshot.jpg" class="flex-1 px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:border-indigo-500">
-                <button (click)="addScreenshotByUrl()" [disabled]="!newScreenshotUrl() || addingScreenshotByUrl()" class="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-all disabled:opacity-50">
-                  {{addingScreenshotByUrl() ? 'Adding...' : 'Add by URL'}}
-                </button>
-              </div>
-              <p *ngIf="screenshotByUrlError()" class="text-red-400 text-xs mt-1">{{screenshotByUrlError()}}</p>
+            <div class="flex gap-2">
+              <input type="url" [(ngModel)]="newScreenshotUrl" placeholder="https://example.com/screenshot.jpg" class="flex-1 px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:border-indigo-500">
+              <button (click)="addScreenshotByUrl()" [disabled]="!newScreenshotUrl() || addingScreenshotByUrl()" class="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-all disabled:opacity-50">
+                {{addingScreenshotByUrl() ? 'Adding...' : 'Add by URL'}}
+              </button>
             </div>
+            <p *ngIf="screenshotByUrlError()" class="text-red-400 text-xs mt-1">{{screenshotByUrlError()}}</p>
           </div>
 
           <div class="md:col-span-2 border-t border-gray-700 pt-4">
@@ -322,17 +313,17 @@ export class GamesComponent implements OnInit {
     this.screenshotByUrlError.set('');
     this.gameService.uploadImageFromUrl(this.newScreenshotUrl()).subscribe({
       next: res => {
-        this.addingScreenshotByUrl.set(false);
         this.gameService.addScreenshot(this.editingId(), { url: res.data, caption: '', fileSize: 0, contentType: 'image/jpeg' }).subscribe({
           next: ss => {
+            this.addingScreenshotByUrl.set(false);
             this.screenshots.update(list => [...list, ss.data]);
             this.newScreenshotUrl.set('');
             this.screenshotByUrlError.set('');
           },
-          error: () => this.screenshotByUrlError.set('Failed to save screenshot')
+          error: err => { this.addingScreenshotByUrl.set(false); this.screenshotByUrlError.set(err.error?.message || 'Failed to save screenshot'); }
         });
       },
-      error: () => { this.addingScreenshotByUrl.set(false); this.screenshotByUrlError.set('Failed to upload screenshot'); }
+      error: err => { this.addingScreenshotByUrl.set(false); this.screenshotByUrlError.set(err.error?.message || 'Failed to upload from URL'); }
     });
   }
 
