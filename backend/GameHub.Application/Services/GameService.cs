@@ -12,13 +12,15 @@ namespace GameHub.Application.Services;
 public class GameService : IGameService
 {
     private readonly IUnitOfWork _unitOfWork;
+    private readonly IGameRepository _gameRepository;
     private readonly IMapper _mapper;
     private readonly ICacheService _cacheService;
     private readonly ILogger<GameService> _logger;
 
-    public GameService(IUnitOfWork unitOfWork, IMapper mapper, ICacheService cacheService, ILogger<GameService> logger)
+    public GameService(IUnitOfWork unitOfWork, IGameRepository gameRepository, IMapper mapper, ICacheService cacheService, ILogger<GameService> logger)
     {
         _unitOfWork = unitOfWork;
+        _gameRepository = gameRepository;
         _mapper = mapper;
         _cacheService = cacheService;
         _logger = logger;
@@ -30,8 +32,8 @@ public class GameService : IGameService
         var cached = await _cacheService.GetAsync<GameDto>(cacheKey);
         if (cached != null) return ApiResponse<GameDto>.Ok(cached);
 
-        var game = await _unitOfWork.Repository<Game>().GetByIdAsync(id);
-        if (game == null || game.IsDeleted)
+        var game = await _gameRepository.GetGameWithDetailsAsync(id);
+        if (game == null)
             return ApiResponse<GameDto>.NotFound("Game not found");
 
         var dto = _mapper.Map<GameDto>(game);
@@ -139,7 +141,9 @@ public class GameService : IGameService
         await _unitOfWork.SaveChangesAsync();
 
         _logger.LogInformation("Game created: {Name}", game.Name);
-        return ApiResponse<GameDto>.Created(_mapper.Map<GameDto>(game), "Game created successfully");
+
+        var created = await _gameRepository.GetGameWithDetailsAsync(game.Id);
+        return ApiResponse<GameDto>.Created(_mapper.Map<GameDto>(created ?? game), "Game created successfully");
     }
 
     public async Task<ApiResponse<GameDto>> UpdateAsync(string id, UpdateGameRequest request)
@@ -186,7 +190,9 @@ public class GameService : IGameService
         await _cacheService.RemoveAsync($"game_{id}");
 
         _logger.LogInformation("Game updated: {Name}", game.Name);
-        return ApiResponse<GameDto>.Ok(_mapper.Map<GameDto>(game), "Game updated");
+
+        var updated = await _gameRepository.GetGameWithDetailsAsync(id);
+        return ApiResponse<GameDto>.Ok(_mapper.Map<GameDto>(updated ?? game), "Game updated");
     }
 
     public async Task<ApiResponse<bool>> DeleteAsync(string id)
@@ -250,7 +256,8 @@ public class GameService : IGameService
 
         await _unitOfWork.Repository<Game>().AddAsync(duplicate);
         await _unitOfWork.SaveChangesAsync();
-        return ApiResponse<GameDto>.Created(_mapper.Map<GameDto>(duplicate), "Game duplicated");
+        var created = await _gameRepository.GetGameWithDetailsAsync(duplicate.Id);
+        return ApiResponse<GameDto>.Created(_mapper.Map<GameDto>(created ?? duplicate), "Game duplicated");
     }
 
     public async Task<ApiResponse<bool>> ChangeStatusAsync(string id, string status)

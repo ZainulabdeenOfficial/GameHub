@@ -157,6 +157,16 @@ import { GameListDto, Category, Publisher, Developer, Screenshot } from '../../.
                 <input type="file" accept="image/*" (change)="onScreenshotUpload($event)" class="hidden">
               </label>
             </div>
+            <div class="mt-4">
+              <label class="text-gray-400 text-sm block mb-2">Or Add Screenshot by URL</label>
+              <div class="flex gap-2">
+                <input type="url" [(ngModel)]="newScreenshotUrl" placeholder="https://example.com/screenshot.jpg" class="flex-1 px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:border-indigo-500">
+                <button (click)="addScreenshotByUrl()" [disabled]="!newScreenshotUrl() || addingScreenshotByUrl()" class="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-all disabled:opacity-50">
+                  {{addingScreenshotByUrl() ? 'Adding...' : 'Add by URL'}}
+                </button>
+              </div>
+              <p *ngIf="screenshotByUrlError()" class="text-red-400 text-xs mt-1">{{screenshotByUrlError()}}</p>
+            </div>
           </div>
 
           <div class="md:col-span-2 border-t border-gray-700 pt-4">
@@ -291,6 +301,9 @@ export class GamesComponent implements OnInit {
   uploadingScreenshot = signal(false);
   screenshots = signal<Screenshot[]>([]);
   error = signal('');
+  newScreenshotUrl = signal('');
+  addingScreenshotByUrl = signal(false);
+  screenshotByUrlError = signal('');
 
   form: any = this.emptyForm();
 
@@ -301,6 +314,26 @@ export class GamesComponent implements OnInit {
     this.gameService.getCategories().subscribe(res => this.categories.set(res.data || []));
     this.gameService.getPublishers().subscribe(res => this.publishers.set(res.data || []));
     this.gameService.getDevelopers().subscribe(res => this.developers.set(res.data || []));
+  }
+
+  addScreenshotByUrl() {
+    if (!this.newScreenshotUrl() || !this.editingId()) return;
+    this.addingScreenshotByUrl.set(true);
+    this.screenshotByUrlError.set('');
+    this.gameService.uploadImageFromUrl(this.newScreenshotUrl()).subscribe({
+      next: res => {
+        this.addingScreenshotByUrl.set(false);
+        this.gameService.addScreenshot(this.editingId(), { url: res.data, caption: '', fileSize: 0, contentType: 'image/jpeg' }).subscribe({
+          next: ss => {
+            this.screenshots.update(list => [...list, ss.data]);
+            this.newScreenshotUrl.set('');
+            this.screenshotByUrlError.set('');
+          },
+          error: () => this.screenshotByUrlError.set('Failed to save screenshot')
+        });
+      },
+      error: () => { this.addingScreenshotByUrl.set(false); this.screenshotByUrlError.set('Failed to upload screenshot'); }
+    });
   }
 
   private emptyForm() {
@@ -354,6 +387,7 @@ export class GamesComponent implements OnInit {
     const file = input?.files?.[0];
     if (!file || !this.editingId()) return;
     this.uploadingScreenshot.set(true);
+    this.error.set('');
     this.gameService.uploadImage(file).subscribe({
       next: res => {
         this.uploadingScreenshot.set(false);
