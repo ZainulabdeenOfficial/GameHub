@@ -37,7 +37,8 @@ public class GameService : IGameService
             return ApiResponse<GameDto>.NotFound("Game not found");
 
         var dto = _mapper.Map<GameDto>(game);
-        await _cacheService.SetAsync(cacheKey, dto, TimeSpan.FromMinutes(5));
+        if (dto.CategoryName != null)
+            await _cacheService.SetAsync(cacheKey, dto, TimeSpan.FromMinutes(5));
         return ApiResponse<GameDto>.Ok(dto);
     }
 

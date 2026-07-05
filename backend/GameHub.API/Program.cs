@@ -1,3 +1,4 @@
+using System.Text.Json.Serialization;
 using Serilog;
 using GameHub.API.Extensions;
 using GameHub.API.Middleware;
@@ -12,7 +13,8 @@ Log.Logger = new LoggerConfiguration()
 
 builder.Host.UseSerilog();
 
-builder.Services.AddControllers();
+builder.Services.AddControllers()
+    .AddJsonOptions(options => options.JsonSerializerOptions.ReferenceHandler = ReferenceHandler.IgnoreCycles);
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerService();
 builder.Services.AddCorsPolicy(builder.Configuration);
