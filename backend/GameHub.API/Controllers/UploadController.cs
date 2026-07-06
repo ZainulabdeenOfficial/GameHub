@@ -28,7 +28,8 @@ public class UploadController : ControllerBase
         if (!allowedTypes.Contains(file.ContentType.ToLower()))
             return BadRequest(ApiResponse<string>.BadRequest("Only JPEG, PNG, WebP, and GIF images are allowed"));
 
-        var url = await _fileUploadService.UploadAsync(file, "games/images");
+        var relativeUrl = await _fileUploadService.UploadAsync(file, "games/images");
+        var url = $"{Request.Scheme}://{Request.Host}{relativeUrl}";
         return Ok(ApiResponse<string>.Ok(url, "Image uploaded"));
     }
 
@@ -40,7 +41,8 @@ public class UploadController : ControllerBase
 
         try
         {
-            var url = await _fileUploadService.UploadFromUrlAsync(request.Url, "games/images");
+            var relativeUrl = await _fileUploadService.UploadFromUrlAsync(request.Url, "games/images");
+            var url = $"{Request.Scheme}://{Request.Host}{relativeUrl}";
             return Ok(ApiResponse<string>.Ok(url, "Image uploaded from URL"));
         }
         catch
@@ -56,7 +58,8 @@ public class UploadController : ControllerBase
         if (file == null || file.Length == 0)
             return BadRequest(ApiResponse<string>.BadRequest("No file provided"));
 
-        var url = await _fileUploadService.UploadAsync(file, "games/files");
+        var relativeUrl = await _fileUploadService.UploadAsync(file, "games/files");
+        var url = $"{Request.Scheme}://{Request.Host}{relativeUrl}";
         return Ok(ApiResponse<string>.Ok(url, "File uploaded"));
     }
 }

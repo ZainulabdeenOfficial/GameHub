@@ -3,5 +3,10 @@
     "target": "http://localhost:5143",
     "secure": false,
     "logLevel": "debug"
+  },
+  "/uploads": {
+    "target": "http://localhost:5143",
+    "secure": false,
+    "logLevel": "debug"
   }
 }

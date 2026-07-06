@@ -179,7 +179,7 @@ import { GameListDto, GameStats, HeroBannerDto, BannerDto } from '../../core/mod
       <!-- Tabs -->
       <div class="max-w-7xl mx-auto px-4 py-4">
         <div class="flex items-center gap-2 overflow-x-auto pb-2 scrollbar-hide">
-          <button *ngFor="let tab of tabs" (click)="activeTab.set(tab.key); searchTerm = ''; searchResults.set([])" class="px-5 py-2 rounded-full text-sm font-medium whitespace-nowrap transition-all" [ngClass]="activeTab() === tab.key ? 'text-white' : ''" [style.background-color]="activeTab() === tab.key ? '#6366f1' : 'var(--bg-tertiary)'" [style.color]="activeTab() !== tab.key ? 'var(--text-secondary)' : ''">{{tab.label}}</button>
+          <button *ngFor="let tab of tabs" (click)="selectTab(tab.key)" class="px-5 py-2 rounded-full text-sm font-medium whitespace-nowrap transition-all" [ngClass]="activeTab() === tab.key ? 'text-white' : ''" [style.background-color]="activeTab() === tab.key ? '#6366f1' : 'var(--bg-tertiary)'" [style.color]="activeTab() !== tab.key ? 'var(--text-secondary)' : ''">{{tab.label}}</button>
         </div>
       </div>
 
@@ -435,9 +435,9 @@ export class HomeComponent implements OnInit {
       }
       this.checkLoading();
     });
-    this.gameService.getStats().subscribe(res => {
-      this.stats.set(res.data);
-      this.checkLoading();
+    this.gameService.getStats().subscribe({
+      next: res => { this.stats.set(res.data); this.checkLoading(); },
+      error: () => this.checkLoading()
     });
     this.startAutoSlide();
   }
@@ -491,14 +491,24 @@ export class HomeComponent implements OnInit {
     }
   }
 
+  selectTab(key: string) {
+    this.activeTab.set(key);
+    this.searchTerm = '';
+    this.searchResults.set([]);
+    if (key !== 'all' && key !== 'trending' && key !== 'latest' && key !== 'featured') {
+      const cat = this.categories().find(c => c.id === key);
+      if (cat) this.filterByCategory(cat);
+    }
+  }
+
   filterByCategory(cat: any) {
     this.activeTab.set(cat.id);
     this.searchTerm = '';
     this.searchResults.set([]);
     this.isLoading.set(true);
-    this.gameService.getAll({ categoryId: cat.id, pageSize: 50 }).subscribe(res => {
-      this.categoryGames.set(res.data?.data || []);
-      this.isLoading.set(false);
+    this.gameService.getAll({ categoryId: cat.id, pageSize: 50 }).subscribe({
+      next: res => { this.categoryGames.set(res.data?.data || []); this.isLoading.set(false); },
+      error: () => this.isLoading.set(false)
     });
   }
 
