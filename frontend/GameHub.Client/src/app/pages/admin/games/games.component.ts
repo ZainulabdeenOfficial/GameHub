@@ -150,6 +150,14 @@ import { GameListDto, Category, Publisher, Developer, Screenshot } from '../../.
                   <span class="text-white text-xs bg-gray-900/80 px-2 py-0.5 rounded">{{i + 1}}</span>
                 </div>
               </div>
+              <div *ngFor="let ss of pendingNewScreenshots(); let i = index" class="relative group aspect-video bg-gray-800 rounded-lg overflow-hidden border border-indigo-500/50">
+                <img [src]="ss.url" class="w-full h-full object-cover">
+                <div class="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
+                  <button (click)="removePendingScreenshot(i)" class="p-1.5 bg-red-600 text-white rounded-full hover:bg-red-700 transition-all"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg></button>
+                  <span class="text-white text-xs bg-gray-900/80 px-2 py-0.5 rounded">{{screenshots().length + i + 1}}</span>
+                </div>
+                <div class="absolute top-1 left-1 px-1.5 py-0.5 bg-indigo-600 text-white text-[10px] rounded">New</div>
+              </div>
             </div>
             <div class="flex gap-2">
               <input type="url" [(ngModel)]="newScreenshotUrl" placeholder="https://example.com/screenshot.jpg" class="flex-1 px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:border-indigo-500">
@@ -300,6 +308,7 @@ export class GamesComponent implements OnInit {
   newScreenshotUrl = signal('');
   addingScreenshotByUrl = signal(false);
   screenshotByUrlError = signal('');
+  pendingNewScreenshots = signal<{url: string; fileSize: number; contentType: string}[]>([]);
 
   form: any = this.emptyForm();
 
@@ -314,22 +323,28 @@ export class GamesComponent implements OnInit {
 
   addScreenshotByUrl() {
     if (!this.newScreenshotUrl()) return;
-    if (!this.editingId()) { this.screenshotByUrlError.set('Save the game first, then add screenshots'); return; }
     this.addingScreenshotByUrl.set(true);
     this.screenshotByUrlError.set('');
     const uploadedUrl = this.newScreenshotUrl();
     this.gameService.uploadImageFromUrl(uploadedUrl).subscribe({
       next: res => {
         const serverUrl = res.data;
-        this.gameService.addScreenshot(this.editingId(), { url: serverUrl, caption: '', fileSize: 0, contentType: 'image/jpeg' }).subscribe({
-          next: ss => {
-            this.addingScreenshotByUrl.set(false);
-            this.screenshots.update(list => [...list, ss.data]);
-            this.newScreenshotUrl.set('');
-            this.screenshotByUrlError.set('');
-          },
-          error: err => { this.addingScreenshotByUrl.set(false); this.screenshotByUrlError.set(err.error?.message || 'Failed to save screenshot'); }
-        });
+        if (this.editingId()) {
+          this.gameService.addScreenshot(this.editingId(), { url: serverUrl, caption: '', fileSize: 0, contentType: 'image/jpeg' }).subscribe({
+            next: ss => {
+              this.addingScreenshotByUrl.set(false);
+              this.screenshots.update(list => [...list, ss.data]);
+              this.newScreenshotUrl.set('');
+              this.screenshotByUrlError.set('');
+            },
+            error: err => { this.addingScreenshotByUrl.set(false); this.screenshotByUrlError.set(err.error?.message || 'Failed to save screenshot'); }
+          });
+        } else {
+          this.addingScreenshotByUrl.set(false);
+          this.pendingNewScreenshots.update(list => [...list, { url: serverUrl, fileSize: 0, contentType: 'image/jpeg' }]);
+          this.newScreenshotUrl.set('');
+          this.screenshotByUrlError.set('');
+        }
       },
       error: err => { this.addingScreenshotByUrl.set(false); this.screenshotByUrlError.set(err.error?.message || 'Failed to upload from URL'); }
     });
@@ -384,19 +399,23 @@ export class GamesComponent implements OnInit {
   onScreenshotUpload(event: Event) {
     const input = event.target as HTMLInputElement;
     const file = input?.files?.[0];
-    if (!file || !this.editingId()) return;
+    if (!file) return;
     this.uploadingScreenshot.set(true);
     this.error.set('');
     this.gameService.uploadImage(file).subscribe({
       next: res => {
         this.uploadingScreenshot.set(false);
-        this.gameService.addScreenshot(this.editingId(), { url: res.data, caption: '', fileSize: file.size, contentType: file.type }).subscribe({
-          next: ss => {
-            this.screenshots.update(list => [...list, ss.data]);
-            this.error.set('');
-          },
-          error: () => this.error.set('Failed to save screenshot')
-        });
+        if (this.editingId()) {
+          this.gameService.addScreenshot(this.editingId(), { url: res.data, caption: '', fileSize: file.size, contentType: file.type }).subscribe({
+            next: ss => {
+              this.screenshots.update(list => [...list, ss.data]);
+              this.error.set('');
+            },
+            error: () => this.error.set('Failed to save screenshot')
+          });
+        } else {
+          this.pendingNewScreenshots.update(list => [...list, { url: res.data, fileSize: file.size, contentType: file.type }]);
+        }
       },
       error: () => { this.uploadingScreenshot.set(false); this.error.set('Failed to upload screenshot'); }
     });
@@ -404,10 +423,16 @@ export class GamesComponent implements OnInit {
 
   removeScreenshot(index: number) {
     const ss = this.screenshots()[index];
-    if (!ss) return;
+    if (ss) {
+      if (!confirm('Remove this screenshot?')) return;
+      if (ss.id) this.pendingDeleteIds.update(list => [...list, ss.id]);
+      this.screenshots.update(list => list.filter((_, i) => i !== index));
+    }
+  }
+
+  removePendingScreenshot(index: number) {
     if (!confirm('Remove this screenshot?')) return;
-    if (ss.id) this.pendingDeleteIds.update(list => [...list, ss.id]);
-    this.screenshots.update(list => list.filter((_, i) => i !== index));
+    this.pendingNewScreenshots.update(list => list.filter((_, i) => i !== index));
   }
 
   loadGames() {
@@ -437,8 +462,15 @@ export class GamesComponent implements OnInit {
     }
     const request = gameId ? this.gameService.update(gameId, payload) : this.gameService.create(payload);
     request.subscribe({
-      next: () => {
+      next: (res) => {
+        const savedGameId = gameId || res?.data?.id;
+        if (savedGameId) {
+          for (const ss of this.pendingNewScreenshots()) {
+            this.gameService.addScreenshot(savedGameId, { url: ss.url, caption: '', fileSize: ss.fileSize, contentType: ss.contentType }).subscribe();
+          }
+        }
         this.pendingDeleteIds.set([]);
+        this.pendingNewScreenshots.set([]);
         this.saving.set(false);
         this.showForm.set(false);
         this.editingId.set('');
@@ -459,6 +491,7 @@ export class GamesComponent implements OnInit {
     this.form = this.emptyForm();
     this.screenshots.set([]);
     this.pendingDeleteIds.set([]);
+    this.pendingNewScreenshots.set([]);
     this.error.set('');
   }
 
@@ -481,6 +514,7 @@ export class GamesComponent implements OnInit {
         this.editingId.set(g.id);
         this.screenshots.set(g.screenshots || []);
         this.pendingDeleteIds.set([]);
+        this.pendingNewScreenshots.set([]);
         this.showForm.set(true);
         this.error.set('');
       },
