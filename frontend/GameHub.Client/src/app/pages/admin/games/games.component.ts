@@ -460,15 +460,12 @@ export class GamesComponent implements OnInit {
     if (gameId) {
       payload.deleteScreenshotIds = this.pendingDeleteIds();
     }
+    payload.screenshots = this.pendingNewScreenshots().map(ss => ({
+      url: ss.url, publicId: null, caption: '', fileSize: ss.fileSize, contentType: ss.contentType
+    }));
     const request = gameId ? this.gameService.update(gameId, payload) : this.gameService.create(payload);
     request.subscribe({
-      next: (res) => {
-        const savedGameId = gameId || res?.data?.id;
-        if (savedGameId) {
-          for (const ss of this.pendingNewScreenshots()) {
-            this.gameService.addScreenshot(savedGameId, { url: ss.url, caption: '', fileSize: ss.fileSize, contentType: ss.contentType }).subscribe();
-          }
-        }
+      next: () => {
         this.pendingDeleteIds.set([]);
         this.pendingNewScreenshots.set([]);
         this.saving.set(false);

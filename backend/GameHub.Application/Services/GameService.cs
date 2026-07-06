@@ -144,6 +144,26 @@ public class GameService : IGameService
         await _unitOfWork.Repository<Game>().AddAsync(game);
         await _unitOfWork.SaveChangesAsync();
 
+        if (request.Screenshots?.Count > 0)
+        {
+            var screenshotRepo = _unitOfWork.Repository<Screenshot>();
+            for (int i = 0; i < request.Screenshots.Count; i++)
+            {
+                var ssReq = request.Screenshots[i];
+                await screenshotRepo.AddAsync(new Screenshot
+                {
+                    GameId = game.Id,
+                    Url = ssReq.Url,
+                    PublicId = ssReq.PublicId,
+                    Caption = ssReq.Caption,
+                    DisplayOrder = i,
+                    FileSize = ssReq.FileSize,
+                    ContentType = ssReq.ContentType ?? "image/jpeg"
+                });
+            }
+            await _unitOfWork.SaveChangesAsync();
+        }
+
         _logger.LogInformation("Game created: {Name}", game.Name);
 
         var created = await _gameRepository.GetGameWithDetailsAsync(game.Id);
@@ -206,6 +226,27 @@ public class GameService : IGameService
                     await _cacheService.RemoveAsync($"game_{id}");
                     screenshotRepo.Delete(ss);
                 }
+            }
+        }
+
+        if (request.Screenshots?.Count > 0)
+        {
+            var screenshotRepo = _unitOfWork.Repository<Screenshot>();
+            var existing = await screenshotRepo.FindAsync(s => s.GameId == id);
+            var maxOrder = existing.Any() ? existing.Max(s => s.DisplayOrder) : -1;
+            for (int i = 0; i < request.Screenshots.Count; i++)
+            {
+                var ssReq = request.Screenshots[i];
+                await screenshotRepo.AddAsync(new Screenshot
+                {
+                    GameId = id,
+                    Url = ssReq.Url,
+                    PublicId = ssReq.PublicId,
+                    Caption = ssReq.Caption,
+                    DisplayOrder = maxOrder + 1 + i,
+                    FileSize = ssReq.FileSize,
+                    ContentType = ssReq.ContentType ?? "image/jpeg"
+                });
             }
         }
 

@@ -24,7 +24,8 @@ public record CreateGameRequest(
     string? RecommendedRequirements, string? DownloadLink, string? SteamLink,
     string? EpicLink, string? TrailerUrl, GameStatus Status, bool IsFeatured,
     bool IsPopular, bool IsTrending, bool IsEditorsChoice,
-    string? ThumbnailUrl = null, string? BannerUrl = null
+    string? ThumbnailUrl = null, string? BannerUrl = null,
+    List<AddScreenshotRequest>? Screenshots = null
 );
 
 public record UpdateGameRequest(
@@ -36,7 +37,8 @@ public record UpdateGameRequest(
     string? EpicLink, string? TrailerUrl, GameStatus? Status, bool? IsFeatured,
     bool? IsPopular, bool? IsTrending, bool? IsEditorsChoice,
     string? ThumbnailUrl = null, string? BannerUrl = null,
-    List<string>? DeleteScreenshotIds = null
+    List<string>? DeleteScreenshotIds = null,
+    List<AddScreenshotRequest>? Screenshots = null
 );
 
 public record GameImageDto(string Id, string Url, string? PublicId, string? AltText, int DisplayOrder, bool IsThumbnail);
