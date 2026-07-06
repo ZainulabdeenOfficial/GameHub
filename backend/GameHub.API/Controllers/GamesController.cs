@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 using GameHub.Application.DTOs.Common;
 using GameHub.Application.DTOs.Game;
 using GameHub.Application.Interfaces;
@@ -17,12 +18,14 @@ public class GamesController : ControllerBase
     private readonly IGameService _gameService;
     private readonly GameHubDbContext _context;
     private readonly ICacheService _cacheService;
+    private readonly ILogger<GamesController> _logger;
 
-    public GamesController(IGameService gameService, GameHubDbContext context, ICacheService cacheService)
+    public GamesController(IGameService gameService, GameHubDbContext context, ICacheService cacheService, ILogger<GamesController> logger)
     {
         _gameService = gameService;
         _context = context;
         _cacheService = cacheService;
+        _logger = logger;
     }
 
     [HttpGet("stats")]
@@ -83,8 +86,19 @@ public class GamesController : ControllerBase
     [HttpPost]
     public async Task<ActionResult<ApiResponse<GameDto>>> Create([FromBody] CreateGameRequest request)
     {
-        var result = await _gameService.CreateAsync(request);
-        return result.Success ? CreatedAtAction(nameof(GetById), new { id = result.Data?.Id }, result) : BadRequest(result);
+        try
+        {
+            var result = await _gameService.CreateAsync(request);
+            return result.Success ? CreatedAtAction(nameof(GetById), new { id = result.Data?.Id }, result) : BadRequest(result);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Create game failed");
+            var msg = ex.Message;
+            var inner = ex.InnerException;
+            while (inner != null) { msg += " | " + inner.Message; inner = inner.InnerException; }
+            return StatusCode(500, ApiResponse<object>.BadRequest(msg));
+        }
     }
 
     [Authorize(Roles = "SuperAdmin,Admin")]

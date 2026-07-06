@@ -458,28 +458,50 @@ export class GamesComponent implements OnInit {
 
     const gameId = this.editingId();
     if (gameId) {
-      payload.deleteScreenshotIds = this.pendingDeleteIds();
+      const request = this.gameService.update(gameId, payload);
+      request.subscribe({
+        next: () => {
+          for (const id of this.pendingDeleteIds()) {
+            if (id) this.gameService.deleteScreenshot(gameId, id).subscribe();
+          }
+          for (const ss of this.pendingNewScreenshots()) {
+            this.gameService.addScreenshot(gameId, { url: ss.url, caption: '', fileSize: ss.fileSize, contentType: ss.contentType }).subscribe();
+          }
+          this.pendingDeleteIds.set([]);
+          this.pendingNewScreenshots.set([]);
+          this.saving.set(false);
+          this.showForm.set(false);
+          this.editingId.set('');
+          this.form = this.emptyForm();
+          this.screenshots.set([]);
+          this.loadGames();
+        },
+        error: (err) => {
+          this.saving.set(false);
+          this.error.set(err.error?.message || 'Failed to save game');
+        }
+      });
+    } else {
+      payload.screenshots = this.pendingNewScreenshots().map(ss => ({
+        url: ss.url, publicId: null, caption: '', fileSize: ss.fileSize, contentType: ss.contentType
+      }));
+      this.gameService.create(payload).subscribe({
+        next: () => {
+          this.pendingDeleteIds.set([]);
+          this.pendingNewScreenshots.set([]);
+          this.saving.set(false);
+          this.showForm.set(false);
+          this.editingId.set('');
+          this.form = this.emptyForm();
+          this.screenshots.set([]);
+          this.loadGames();
+        },
+        error: (err) => {
+          this.saving.set(false);
+          this.error.set(err.error?.message || 'Failed to save game');
+        }
+      });
     }
-    payload.screenshots = this.pendingNewScreenshots().map(ss => ({
-      url: ss.url, publicId: null, caption: '', fileSize: ss.fileSize, contentType: ss.contentType
-    }));
-    const request = gameId ? this.gameService.update(gameId, payload) : this.gameService.create(payload);
-    request.subscribe({
-      next: () => {
-        this.pendingDeleteIds.set([]);
-        this.pendingNewScreenshots.set([]);
-        this.saving.set(false);
-        this.showForm.set(false);
-        this.editingId.set('');
-        this.form = this.emptyForm();
-        this.screenshots.set([]);
-        this.loadGames();
-      },
-      error: (err) => {
-        this.saving.set(false);
-        this.error.set(err.error?.message || 'Failed to save game');
-      }
-    });
   }
 
   cancelForm() {

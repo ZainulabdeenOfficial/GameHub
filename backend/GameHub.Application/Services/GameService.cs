@@ -215,41 +215,6 @@ public class GameService : IGameService
         if (request.ThumbnailUrl != null) game.ThumbnailUrl = request.ThumbnailUrl;
         if (request.BannerUrl != null) game.BannerUrl = request.BannerUrl;
 
-        if (request.DeleteScreenshotIds?.Count > 0)
-        {
-            var screenshotRepo = _unitOfWork.Repository<Screenshot>();
-            foreach (var sid in request.DeleteScreenshotIds)
-            {
-                var ss = await screenshotRepo.GetByIdAsync(sid);
-                if (ss != null && ss.GameId == id)
-                {
-                    await _cacheService.RemoveAsync($"game_{id}");
-                    screenshotRepo.Delete(ss);
-                }
-            }
-        }
-
-        if (request.Screenshots?.Count > 0)
-        {
-            var screenshotRepo = _unitOfWork.Repository<Screenshot>();
-            var existing = await screenshotRepo.FindAsync(s => s.GameId == id);
-            var maxOrder = existing.Any() ? existing.Max(s => s.DisplayOrder) : -1;
-            for (int i = 0; i < request.Screenshots.Count; i++)
-            {
-                var ssReq = request.Screenshots[i];
-                await screenshotRepo.AddAsync(new Screenshot
-                {
-                    GameId = id,
-                    Url = ssReq.Url,
-                    PublicId = ssReq.PublicId,
-                    Caption = ssReq.Caption,
-                    DisplayOrder = maxOrder + 1 + i,
-                    FileSize = ssReq.FileSize,
-                    ContentType = ssReq.ContentType ?? "image/jpeg"
-                });
-            }
-        }
-
         _unitOfWork.Repository<Game>().Update(game);
         await _unitOfWork.SaveChangesAsync();
         await _cacheService.RemoveAsync($"game_{id}");

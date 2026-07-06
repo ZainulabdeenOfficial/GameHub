@@ -43,11 +43,17 @@ public class ExceptionMiddleware
         }
         catch (Exception ex)
         {
-            var msg = ex.InnerException?.Message ?? ex.Message;
+            var msg = ex.Message;
+            var inner = ex.InnerException;
+            while (inner != null)
+            {
+                msg += " | Inner: " + inner.Message;
+                inner = inner.InnerException;
+            }
             _logger.LogError(ex, "Unhandled exception: {Message}", msg);
             context.Response.StatusCode = (int)HttpStatusCode.InternalServerError;
             context.Response.ContentType = "application/json";
-            var response = ApiResponse<object>.BadRequest($"An error occurred: {msg}");
+            var response = ApiResponse<object>.BadRequest($"Error: {msg}");
             await context.Response.WriteAsync(JsonSerializer.Serialize(response, JsonOptions));
         }
     }
