@@ -195,6 +195,20 @@ public class GameService : IGameService
         if (request.ThumbnailUrl != null) game.ThumbnailUrl = request.ThumbnailUrl;
         if (request.BannerUrl != null) game.BannerUrl = request.BannerUrl;
 
+        if (request.DeleteScreenshotIds?.Count > 0)
+        {
+            var screenshotRepo = _unitOfWork.Repository<Screenshot>();
+            foreach (var sid in request.DeleteScreenshotIds)
+            {
+                var ss = await screenshotRepo.GetByIdAsync(sid);
+                if (ss != null && ss.GameId == id)
+                {
+                    await _cacheService.RemoveAsync($"game_{id}");
+                    screenshotRepo.Delete(ss);
+                }
+            }
+        }
+
         _unitOfWork.Repository<Game>().Update(game);
         await _unitOfWork.SaveChangesAsync();
         await _cacheService.RemoveAsync($"game_{id}");

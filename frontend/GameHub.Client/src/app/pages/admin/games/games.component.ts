@@ -432,12 +432,12 @@ export class GamesComponent implements OnInit {
     delete payload.gameFileName;
 
     const gameId = this.editingId();
+    if (gameId) {
+      payload.deleteScreenshotIds = this.pendingDeleteIds();
+    }
     const request = gameId ? this.gameService.update(gameId, payload) : this.gameService.create(payload);
     request.subscribe({
       next: () => {
-        for (const id of this.pendingDeleteIds()) {
-          if (id && gameId) this.gameService.deleteScreenshot(gameId, id).subscribe();
-        }
         this.pendingDeleteIds.set([]);
         this.saving.set(false);
         this.showForm.set(false);
