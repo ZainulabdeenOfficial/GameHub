@@ -40,7 +40,21 @@ public class FileUploadService : IFileUploadService
         var uploadsDir = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "uploads", folder);
         Directory.CreateDirectory(uploadsDir);
 
-        var fileName = $"{Guid.NewGuid()}{Path.GetExtension(url)}";
+        var ext = Path.GetExtension(url);
+        if (string.IsNullOrEmpty(ext))
+        {
+            var contentType = response.Content.Headers.ContentType?.MediaType;
+            ext = contentType switch
+            {
+                "image/jpeg" => ".jpg",
+                "image/png" => ".png",
+                "image/webp" => ".webp",
+                "image/gif" => ".gif",
+                _ => ".jpg"
+            };
+        }
+
+        var fileName = $"{Guid.NewGuid()}{ext}";
         var filePath = Path.Combine(uploadsDir, fileName);
 
         await using var stream = await response.Content.ReadAsStreamAsync();

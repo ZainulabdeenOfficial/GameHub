@@ -26,7 +26,7 @@ public class GamesController : ControllerBase
     public async Task<ActionResult<ApiResponse<GameStatsDto>>> GetStats()
     {
         var totalGames = await _context.Games.CountAsync(g => !g.IsDeleted && g.Status == Domain.Enums.GameStatus.Published);
-        var totalDownloads = await _context.Downloads.CountAsync();
+        var totalDownloads = await _context.Games.Where(g => !g.IsDeleted).SumAsync(g => g.TotalDownloads);
         var totalReviews = await _context.Reviews.CountAsync();
         var totalUsers = await _context.Users.CountAsync();
 

@@ -31,7 +31,7 @@ public class AdminController : ControllerBase
         var activeUsers = await _context.Users.CountAsync(u => u.IsActive && u.LastLoginAt > DateTime.UtcNow.AddDays(-7));
         var newUsers = await _context.Users.CountAsync(u => u.CreatedAt > DateTime.UtcNow.AddDays(-30));
         var totalReviews = await _context.Reviews.CountAsync();
-        var totalDownloads = await _context.Downloads.CountAsync();
+        var totalDownloads = await _context.Games.Where(g => !g.IsDeleted).SumAsync(g => g.TotalDownloads);
 
         return Ok(ApiResponse<object>.Ok(new
         {
