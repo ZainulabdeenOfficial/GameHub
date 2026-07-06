@@ -324,8 +324,8 @@ import { GameListDto, GameStats, HeroBannerDto, BannerDto } from '../../core/mod
             <ul class="space-y-2 text-sm" [style.color]="'var(--text-secondary)'">
               <li><a routerLink="/" fragment="games" class="hover:text-indigo-400 transition-colors">Browse Games</a></li>
               <li><a routerLink="/" fragment="categories" class="hover:text-indigo-400 transition-colors">Categories</a></li>
-              <li><a routerLink="/" class="hover:text-indigo-400 transition-colors">New Releases</a></li>
-              <li><a routerLink="/" class="hover:text-indigo-400 transition-colors">Popular</a></li>
+              <li><a routerLink="/" fragment="games" class="hover:text-indigo-400 transition-colors">New Releases</a></li>
+              <li><a routerLink="/" fragment="games" class="hover:text-indigo-400 transition-colors">Popular</a></li>
             </ul>
           </div>
           <div>
