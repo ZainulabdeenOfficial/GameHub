@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc;
 using GameHub.Application.DTOs.Common;
 
@@ -7,6 +8,13 @@ namespace GameHub.API.Controllers;
 [ApiController]
 public class FilesController : ControllerBase
 {
+    private readonly string _webRootPath;
+
+    public FilesController(IWebHostEnvironment env)
+    {
+        _webRootPath = env.WebRootPath;
+    }
+
     [AllowAnonymous]
     [HttpGet("uploads/{**filePath}")]
     public IActionResult GetUploadedFile(string filePath)
@@ -14,8 +22,8 @@ public class FilesController : ControllerBase
         if (string.IsNullOrWhiteSpace(filePath))
             return NotFound();
 
-        filePath = filePath.TrimStart('/').Replace("/", "\\");
-        var fullPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "uploads", filePath);
+        filePath = filePath.TrimStart('/');
+        var fullPath = Path.Combine(_webRootPath, "uploads", filePath);
 
         if (!System.IO.File.Exists(fullPath))
             return NotFound();

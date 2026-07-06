@@ -1,5 +1,5 @@
+using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
-using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using GameHub.Domain.Interfaces;
 
@@ -7,24 +7,24 @@ namespace GameHub.Infrastructure.Services;
 
 public class FileUploadService : IFileUploadService
 {
-    private readonly IConfiguration _configuration;
     private readonly ILogger<FileUploadService> _logger;
+    private readonly string _webRootPath;
 
-    public FileUploadService(IConfiguration configuration, ILogger<FileUploadService> logger)
+    public FileUploadService(IWebHostEnvironment env, ILogger<FileUploadService> logger)
     {
-        _configuration = configuration;
         _logger = logger;
+        _webRootPath = env.WebRootPath;
     }
 
     public async Task<string> UploadAsync(IFormFile file, string folder = "general")
     {
-        var uploadsDir = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "uploads", folder);
+        var uploadsDir = Path.Combine(_webRootPath, "uploads", folder);
         Directory.CreateDirectory(uploadsDir);
 
         var fileName = $"{Guid.NewGuid()}{Path.GetExtension(file.FileName)}";
         var filePath = Path.Combine(uploadsDir, fileName);
 
-        using var stream = new FileStream(filePath, FileMode.Create);
+        await using var stream = new FileStream(filePath, FileMode.Create);
         await file.CopyToAsync(stream);
 
         _logger.LogInformation("File uploaded: {FileName}", fileName);
@@ -37,7 +37,7 @@ public class FileUploadService : IFileUploadService
         var response = await httpClient.GetAsync(url);
         response.EnsureSuccessStatusCode();
 
-        var uploadsDir = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "uploads", folder);
+        var uploadsDir = Path.Combine(_webRootPath, "uploads", folder);
         Directory.CreateDirectory(uploadsDir);
 
         var cleanUrl = url.Split('?')[0].Split('#')[0];
@@ -67,7 +67,7 @@ public class FileUploadService : IFileUploadService
 
     public Task<bool> DeleteAsync(string publicId)
     {
-        var filePath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", publicId.TrimStart('/'));
+        var filePath = Path.Combine(_webRootPath, publicId.TrimStart('/'));
         if (File.Exists(filePath))
         {
             File.Delete(filePath);
