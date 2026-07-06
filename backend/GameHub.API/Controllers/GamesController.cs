@@ -5,6 +5,7 @@ using GameHub.Application.DTOs.Common;
 using GameHub.Application.DTOs.Game;
 using GameHub.Application.Interfaces;
 using GameHub.Domain.Entities;
+using GameHub.Domain.Interfaces;
 using GameHub.Persistence.Context;
 
 namespace GameHub.API.Controllers;
@@ -15,11 +16,13 @@ public class GamesController : ControllerBase
 {
     private readonly IGameService _gameService;
     private readonly GameHubDbContext _context;
+    private readonly ICacheService _cacheService;
 
-    public GamesController(IGameService gameService, GameHubDbContext context)
+    public GamesController(IGameService gameService, GameHubDbContext context, ICacheService cacheService)
     {
         _gameService = gameService;
         _context = context;
+        _cacheService = cacheService;
     }
 
     [HttpGet("stats")]
@@ -163,6 +166,7 @@ public class GamesController : ControllerBase
 
         _context.Screenshots.Add(screenshot);
         await _context.SaveChangesAsync();
+        await _cacheService.RemoveAsync($"game_{gameId}");
 
         screenshot.Game = null!;
         return Ok(ApiResponse<Screenshot>.Ok(screenshot, "Screenshot added"));
@@ -181,6 +185,7 @@ public class GamesController : ControllerBase
         if (request.DisplayOrder.HasValue) screenshot.DisplayOrder = request.DisplayOrder.Value;
 
         await _context.SaveChangesAsync();
+        await _cacheService.RemoveAsync($"game_{gameId}");
         screenshot.Game = null!;
         return Ok(ApiResponse<Screenshot>.Ok(screenshot, "Screenshot updated"));
     }
@@ -196,6 +201,7 @@ public class GamesController : ControllerBase
 
         _context.Screenshots.Remove(screenshot);
         await _context.SaveChangesAsync();
+        await _cacheService.RemoveAsync($"game_{gameId}");
         return Ok(ApiResponse<bool>.Ok(true, "Screenshot deleted"));
     }
 
@@ -216,6 +222,7 @@ public class GamesController : ControllerBase
         }
 
         await _context.SaveChangesAsync();
+        await _cacheService.RemoveAsync($"game_{gameId}");
         return Ok(ApiResponse<bool>.Ok(true, "Screenshots reordered"));
     }
 
