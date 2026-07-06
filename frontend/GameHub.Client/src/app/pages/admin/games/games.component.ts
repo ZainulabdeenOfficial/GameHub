@@ -321,9 +321,9 @@ export class GamesComponent implements OnInit {
       next: res => {
         const serverUrl = res.data;
         this.gameService.addScreenshot(this.editingId(), { url: serverUrl, caption: '', fileSize: 0, contentType: 'image/jpeg' }).subscribe({
-          next: () => {
+          next: ss => {
             this.addingScreenshotByUrl.set(false);
-            this.screenshots.update(list => [...list, { id: '', url: serverUrl, publicId: null, caption: '', displayOrder: list.length }]);
+            this.screenshots.update(list => [...list, ss.data]);
             this.newScreenshotUrl.set('');
             this.screenshotByUrlError.set('');
           },
