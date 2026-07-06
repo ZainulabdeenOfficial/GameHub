@@ -1,4 +1,5 @@
 using System.Text.Json.Serialization;
+using Microsoft.AspNetCore.HttpOverrides;
 using Serilog;
 using GameHub.API.Extensions;
 using GameHub.API.Middleware;
@@ -27,7 +28,16 @@ builder.Services.AddHttpContextAccessor();
 builder.Services.AddAutoMapper(typeof(GameHub.Application.Mappings.MappingProfile));
 builder.Services.AddMediatR(cfg => cfg.RegisterServicesFromAssembly(typeof(GameHub.Application.Commands.Auth.RegisterCommand).Assembly));
 
+builder.Services.Configure<ForwardedHeadersOptions>(options =>
+{
+    options.ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto;
+    options.KnownNetworks.Clear();
+    options.KnownProxies.Clear();
+});
+
 var app = builder.Build();
+
+app.UseForwardedHeaders();
 
 using (var scope = app.Services.CreateScope())
 {
@@ -44,10 +54,10 @@ app.UseSwaggerUI(options =>
 app.UseMiddleware<ExceptionMiddleware>();
 app.UseMiddleware<RequestLoggingMiddleware>();
 
+app.UseCors("AngularClient");
 if (!app.Environment.IsDevelopment())
     app.UseHttpsRedirection();
 app.UseStaticFiles();
-app.UseCors("AngularClient");
 app.UseAuthentication();
 app.UseAuthorization();
 app.MapControllers();
