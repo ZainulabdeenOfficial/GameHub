@@ -316,12 +316,14 @@ export class GamesComponent implements OnInit {
     if (!this.editingId()) { this.screenshotByUrlError.set('Save the game first, then add screenshots'); return; }
     this.addingScreenshotByUrl.set(true);
     this.screenshotByUrlError.set('');
-    this.gameService.uploadImageFromUrl(this.newScreenshotUrl()).subscribe({
+    const uploadedUrl = this.newScreenshotUrl();
+    this.gameService.uploadImageFromUrl(uploadedUrl).subscribe({
       next: res => {
-        this.gameService.addScreenshot(this.editingId(), { url: res.data, caption: '', fileSize: 0, contentType: 'image/jpeg' }).subscribe({
-          next: ss => {
+        const serverUrl = res.data;
+        this.gameService.addScreenshot(this.editingId(), { url: serverUrl, caption: '', fileSize: 0, contentType: 'image/jpeg' }).subscribe({
+          next: () => {
             this.addingScreenshotByUrl.set(false);
-            this.screenshots.update(list => [...list, ss.data]);
+            this.screenshots.update(list => [...list, { id: '', url: serverUrl, publicId: null, caption: '', displayOrder: list.length }]);
             this.newScreenshotUrl.set('');
             this.screenshotByUrlError.set('');
           },
