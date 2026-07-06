@@ -295,6 +295,7 @@ export class GamesComponent implements OnInit {
   uploadingFile = signal(false);
   uploadingScreenshot = signal(false);
   screenshots = signal<Screenshot[]>([]);
+  pendingDeleteIds = signal<string[]>([]);
   error = signal('');
   newScreenshotUrl = signal('');
   addingScreenshotByUrl = signal(false);
@@ -405,10 +406,8 @@ export class GamesComponent implements OnInit {
     const ss = this.screenshots()[index];
     if (!ss) return;
     if (!confirm('Remove this screenshot?')) return;
-    this.gameService.deleteScreenshot(this.editingId(), ss.id).subscribe({
-      next: () => this.screenshots.update(list => list.filter((_, i) => i !== index)),
-      error: () => this.error.set('Failed to delete screenshot')
-    });
+    if (ss.id) this.pendingDeleteIds.update(list => [...list, ss.id]);
+    this.screenshots.update(list => list.filter((_, i) => i !== index));
   }
 
   loadGames() {
@@ -432,9 +431,14 @@ export class GamesComponent implements OnInit {
     payload.developerId = this.form.developerId || null;
     delete payload.gameFileName;
 
-    const request = this.editingId() ? this.gameService.update(this.editingId(), payload) : this.gameService.create(payload);
+    const gameId = this.editingId();
+    const request = gameId ? this.gameService.update(gameId, payload) : this.gameService.create(payload);
     request.subscribe({
       next: () => {
+        for (const id of this.pendingDeleteIds()) {
+          if (id && gameId) this.gameService.deleteScreenshot(gameId, id).subscribe();
+        }
+        this.pendingDeleteIds.set([]);
         this.saving.set(false);
         this.showForm.set(false);
         this.editingId.set('');
@@ -454,6 +458,7 @@ export class GamesComponent implements OnInit {
     this.editingId.set('');
     this.form = this.emptyForm();
     this.screenshots.set([]);
+    this.pendingDeleteIds.set([]);
     this.error.set('');
   }
 
@@ -475,6 +480,7 @@ export class GamesComponent implements OnInit {
         };
         this.editingId.set(g.id);
         this.screenshots.set(g.screenshots || []);
+        this.pendingDeleteIds.set([]);
         this.showForm.set(true);
         this.error.set('');
       },
