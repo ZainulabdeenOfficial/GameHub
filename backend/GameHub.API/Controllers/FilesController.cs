@@ -16,6 +16,7 @@ public class FilesController : ControllerBase
     }
 
     [AllowAnonymous]
+    [HttpGet("api/uploads/{**filePath}")]
     [HttpGet("uploads/{**filePath}")]
     public IActionResult GetUploadedFile(string filePath)
     {

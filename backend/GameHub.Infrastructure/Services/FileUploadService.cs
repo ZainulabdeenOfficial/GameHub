@@ -28,7 +28,7 @@ public class FileUploadService : IFileUploadService
         await file.CopyToAsync(stream);
 
         _logger.LogInformation("File uploaded: {FileName}", fileName);
-        return $"/uploads/{folder}/{fileName}";
+        return $"/api/uploads/{folder}/{fileName}";
     }
 
     public async Task<string> UploadFromUrlAsync(string url, string folder = "general")
@@ -62,12 +62,15 @@ public class FileUploadService : IFileUploadService
         await using var fileStream = new FileStream(filePath, FileMode.Create);
         await stream.CopyToAsync(fileStream);
 
-        return $"/uploads/{folder}/{fileName}";
+        return $"/api/uploads/{folder}/{fileName}";
     }
 
     public Task<bool> DeleteAsync(string publicId)
     {
-        var filePath = Path.Combine(_webRootPath, publicId.TrimStart('/'));
+        var relative = publicId.TrimStart('/');
+        if (relative.StartsWith("api/"))
+            relative = relative[4..];
+        var filePath = Path.Combine(_webRootPath, relative);
         if (File.Exists(filePath))
         {
             File.Delete(filePath);
