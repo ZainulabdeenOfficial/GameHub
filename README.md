@@ -1,8 +1,8 @@
 # GameHub
 
 <p align="center">
-  <a href="http://gamehub12.runasp.net">
-    <img src="https://via.placeholder.com/800x200/6366f1/ffffff?text=GameHub" alt="GameHub Banner" width="100%" />
+  <a href="ttps://game-hub-pi-smoky.vercel.app">
+    <img src="https://github.com/ZainulabdeenOfficial/GameHub/blob/main/app%20icon.png" alt="GameHub Banner" width="100%" />
   </a>
 </p>
 
