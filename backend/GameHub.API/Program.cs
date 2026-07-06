@@ -44,7 +44,8 @@ app.UseSwaggerUI(options =>
 app.UseMiddleware<ExceptionMiddleware>();
 app.UseMiddleware<RequestLoggingMiddleware>();
 
-app.UseHttpsRedirection();
+if (!app.Environment.IsDevelopment())
+    app.UseHttpsRedirection();
 app.UseStaticFiles();
 app.UseCors("AngularClient");
 app.UseAuthentication();
