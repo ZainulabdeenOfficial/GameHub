@@ -46,7 +46,7 @@ public class ExceptionMiddleware
             _logger.LogError(ex, "Unhandled exception: {Message}", ex.Message);
             context.Response.StatusCode = (int)HttpStatusCode.InternalServerError;
             context.Response.ContentType = "application/json";
-            var response = ApiResponse<object>.BadRequest("An error occurred. Please try again later.");
+            var response = ApiResponse<object>.BadRequest($"An error occurred: {ex.Message}");
             await context.Response.WriteAsync(JsonSerializer.Serialize(response, JsonOptions));
         }
     }
