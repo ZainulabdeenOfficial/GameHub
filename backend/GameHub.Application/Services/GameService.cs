@@ -167,25 +167,31 @@ public class GameService : IGameService
             game.CategoryId = request.CategoryId;
         }
         if (request.Platform.HasValue) game.Platform = request.Platform.Value;
-        if (!string.IsNullOrWhiteSpace(request.PublisherId))
+        if (request.PublisherId != null)
         {
-            var publisherExists = await _unitOfWork.Repository<Publisher>().ExistsAsync(p => p.Id == request.PublisherId);
-            if (!publisherExists)
-                return ApiResponse<GameDto>.BadRequest("Publisher not found");
-            game.PublisherId = request.PublisherId;
+            if (!string.IsNullOrWhiteSpace(request.PublisherId))
+            {
+                var publisherExists = await _unitOfWork.Repository<Publisher>().ExistsAsync(p => p.Id == request.PublisherId);
+                if (!publisherExists)
+                    return ApiResponse<GameDto>.BadRequest("Publisher not found");
+            }
+            game.PublisherId = string.IsNullOrWhiteSpace(request.PublisherId) ? null : request.PublisherId;
         }
-        if (!string.IsNullOrWhiteSpace(request.DeveloperId))
+        if (request.DeveloperId != null)
         {
-            var developerExists = await _unitOfWork.Repository<Developer>().ExistsAsync(d => d.Id == request.DeveloperId);
-            if (!developerExists)
-                return ApiResponse<GameDto>.BadRequest("Developer not found");
-            game.DeveloperId = request.DeveloperId;
+            if (!string.IsNullOrWhiteSpace(request.DeveloperId))
+            {
+                var developerExists = await _unitOfWork.Repository<Developer>().ExistsAsync(d => d.Id == request.DeveloperId);
+                if (!developerExists)
+                    return ApiResponse<GameDto>.BadRequest("Developer not found");
+            }
+            game.DeveloperId = string.IsNullOrWhiteSpace(request.DeveloperId) ? null : request.DeveloperId;
         }
         if (request.Status.HasValue) game.Status = request.Status.Value;
         if (request.IsFeatured.HasValue) game.IsFeatured = request.IsFeatured.Value;
         if (request.IsPopular.HasValue) game.IsPopular = request.IsPopular.Value;
         if (request.IsTrending.HasValue) game.IsTrending = request.IsTrending.Value;
-        if (request.GameSize.HasValue) game.GameSize = request.GameSize.Value;
+        if (request.IsEditorsChoice.HasValue) game.IsEditorsChoice = request.IsEditorsChoice.Value;
         if (request.ThumbnailUrl != null) game.ThumbnailUrl = request.ThumbnailUrl;
         if (request.BannerUrl != null) game.BannerUrl = request.BannerUrl;
 
