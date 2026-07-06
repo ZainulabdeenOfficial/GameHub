@@ -40,7 +40,8 @@ public class FileUploadService : IFileUploadService
         var uploadsDir = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "uploads", folder);
         Directory.CreateDirectory(uploadsDir);
 
-        var ext = Path.GetExtension(url);
+        var cleanUrl = url.Split('?')[0].Split('#')[0];
+        var ext = Path.GetExtension(cleanUrl);
         if (string.IsNullOrEmpty(ext))
         {
             var contentType = response.Content.Headers.ContentType?.MediaType;
