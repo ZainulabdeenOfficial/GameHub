@@ -133,6 +133,7 @@ public class GamesController : ControllerBase
             .Where(s => s.GameId == gameId)
             .OrderBy(s => s.DisplayOrder)
             .ToListAsync();
+        foreach (var ss in screenshots) ss.Game = null!;
         return Ok(ApiResponse<List<Screenshot>>.Ok(screenshots));
     }
 
@@ -162,6 +163,8 @@ public class GamesController : ControllerBase
 
         _context.Screenshots.Add(screenshot);
         await _context.SaveChangesAsync();
+
+        screenshot.Game = null!;
         return Ok(ApiResponse<Screenshot>.Ok(screenshot, "Screenshot added"));
     }
 
@@ -178,6 +181,7 @@ public class GamesController : ControllerBase
         if (request.DisplayOrder.HasValue) screenshot.DisplayOrder = request.DisplayOrder.Value;
 
         await _context.SaveChangesAsync();
+        screenshot.Game = null!;
         return Ok(ApiResponse<Screenshot>.Ok(screenshot, "Screenshot updated"));
     }
 

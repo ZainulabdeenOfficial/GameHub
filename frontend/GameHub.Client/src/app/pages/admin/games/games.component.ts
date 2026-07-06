@@ -308,7 +308,8 @@ export class GamesComponent implements OnInit {
   }
 
   addScreenshotByUrl() {
-    if (!this.newScreenshotUrl() || !this.editingId()) return;
+    if (!this.newScreenshotUrl()) return;
+    if (!this.editingId()) { this.screenshotByUrlError.set('Save the game first, then add screenshots'); return; }
     this.addingScreenshotByUrl.set(true);
     this.screenshotByUrlError.set('');
     this.gameService.uploadImageFromUrl(this.newScreenshotUrl()).subscribe({
