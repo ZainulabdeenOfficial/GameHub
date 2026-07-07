@@ -772,6 +772,42 @@ sequenceDiagram
 
 ---
 
+## Screenshots & Demo
+
+Here are some screenshots and a demo video showcasing the GameHub application:
+
+### Screenshots
+
+<p align="center">
+  <img src="ScreenShots/WhatsApp%20Image%202026-07-06%20at%202.29.14%20PM.jpeg" alt="Screenshot 1" width="45%" />
+  <img src="ScreenShots/WhatsApp%20Image%202026-07-06%20at%202.29.53%20PM.jpeg" alt="Screenshot 2" width="45%" />
+</p>
+
+<p align="center">
+  <img src="ScreenShots/WhatsApp%20Image%202026-07-06%20at%202.30.39%20PM.jpeg" alt="Screenshot 3" width="45%" />
+  <img src="ScreenShots/WhatsApp%20Image%202026-07-06%20at%202.31.50%20PM.jpeg" alt="Screenshot 4" width="45%" />
+</p>
+
+<p align="center">
+  <img src="ScreenShots/WhatsApp%20Image%202026-07-06%20at%202.32.15%20PM.jpeg" alt="Screenshot 5" width="45%" />
+  <img src="ScreenShots/WhatsApp%20Image%202026-07-06%20at%202.32.40%20PM.jpeg" alt="Screenshot 6" width="45%" />
+</p>
+
+<p align="center">
+  <img src="ScreenShots/WhatsApp%20Image%202026-07-06%20at%202.33.38%20PM.jpeg" alt="Screenshot 7" width="45%" />
+  <img src="ScreenShots/WhatsApp%20Image%202026-07-06%20at%202.34.26%20PM.jpeg" alt="Screenshot 8" width="45%" />
+</p>
+
+### Demo Video
+
+<p align="center">
+  <video src="ScreenShots/WhatsApp%20Video%202026-07-06%20at%202.39.01%20PM.mp4" controls width="80%">
+    Your browser does not support the video tag.
+  </video>
+</p>
+
+---
+
 ## Deployment
 
 ### Frontend (Vercel)
@@ -800,3 +836,7 @@ The ASP.NET Core API is deployed to an ASP.NET hosting provider with:
 | `AllowedOrigins__Angular` | Frontend URL for CORS |
 | `Cloudinary__CloudName` | Cloudinary credentials (if used) |
 | `Email__SmtpHost` | SMTP server for transactional emails |
+
+---
+
+**Created by M Zain Ul Abideen**
