@@ -801,7 +801,7 @@ Here are some screenshots and a demo video showcasing the GameHub application:
 ### Demo Video
 
 <p align="center">
-  <video src="ScreenShots/WhatsApp%20Video%202026-07-06%20at%202.39.01%20PM.mp4" controls width="80%">
+  <video src="https://github.com/ZainulabdeenOfficial/GameHub/blob/main/ScreenShots/WhatsApp%20Video%202026-07-06%20at%202.39.01%20PM.mp4" controls width="80%">
     Your browser does not support the video tag.
   </video>
 </p>
